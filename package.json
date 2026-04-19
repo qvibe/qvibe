@@ -11,6 +11,7 @@
 		"@netlify/blobs": "^10.7.4",
 		"@vercel/blob": "^2.3.3",
 		"bcryptjs": "^3.0.3",
+		"jose": "^6.2.2",
 		"jsonwebtoken": "^9.0.3",
 		"lucide-react": "^1.8.0",
 		"mongodb": "^7.1.1",

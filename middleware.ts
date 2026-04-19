@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { getSession } from '@/app/lib/auth'
+import { getSession } from './app/lib/session'
 
 export async function middleware(request: NextRequest) {
 	const session = await getSession()
 	const { pathname } = request.nextUrl
+
+	if (pathname === '/api/auth/login' || pathname === '/api/auth/register') {
+		return NextResponse.next()
+	}
 
 	const rewrites: Record<string, string> = {
 		'/dashboard': '/pages/dashboard',

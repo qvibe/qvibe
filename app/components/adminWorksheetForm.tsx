@@ -2,7 +2,7 @@
 import { useState } from 'react'
 
 interface AdminWorksheetFormProps {
-	onSuccess?: () => void // ✅ optional
+	onSuccess?: () => void
 }
 
 const categories = ['MATEMATIKA', 'MEWARNAI', 'AGAMA ISLAM', 'LAIN-LAIN']
@@ -30,7 +30,7 @@ export default function AdminWorksheetForm({
 		if (res.ok) {
 			setTitle('')
 			setFile(null)
-			onSuccess?.() // ✅ call if provided
+			onSuccess?.()
 			alert('Worksheet uploaded!')
 		} else {
 			alert('Upload failed')

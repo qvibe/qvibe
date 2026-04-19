@@ -3,7 +3,7 @@ import { useState } from 'react'
 
 interface AdminVideoFormProps {
 	categories: string[]
-	onSuccess?: () => void // ✅ optional
+	onSuccess?: () => void
 }
 
 export default function AdminVideoForm({
@@ -24,7 +24,7 @@ export default function AdminVideoForm({
 		if (res.ok) {
 			setTitle('')
 			setYoutubeLink('')
-			onSuccess?.() // ✅ call if provided
+			onSuccess?.()
 			alert('Video added!')
 		} else {
 			alert('Failed to add video')

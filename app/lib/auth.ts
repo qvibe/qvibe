@@ -1,8 +1,6 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { cookies } from 'next/headers'
-import { getUsersCollection } from './db'
-import { ObjectId } from 'mongodb'
 
 const JWT_SECRET = process.env.JWT_SECRET!
 
@@ -27,16 +25,9 @@ export async function getSession() {
 			userId: string
 			role: string
 		}
-		const users = await getUsersCollection()
-		const user = await users.findOne(
-			{ _id: new ObjectId(decoded.userId) },
-			{ projection: { password: 0 } }
-		)
-		if (!user) return null
 		return {
-			id: user._id.toString(),
-			username: user.username,
-			role: user.role
+			id: decoded.userId,
+			role: decoded.role
 		}
 	} catch {
 		return null

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getVideosCollection } from '@/app/lib/db'
 import { getSession } from '@/app/lib/auth'
 
+export const runtime = 'nodejs'
+
 export async function GET(req: NextRequest) {
 	const { searchParams } = new URL(req.url)
 	const category = searchParams.get('category')

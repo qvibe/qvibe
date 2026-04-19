@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { getUsersCollection } from '@/app/lib/db'
 import { hashPassword } from '@/app/lib/auth'
 
+export const runtime = 'nodejs'
+
 export async function POST(req: Request) {
 	const { username, password } = await req.json()
 	const users = await getUsersCollection()

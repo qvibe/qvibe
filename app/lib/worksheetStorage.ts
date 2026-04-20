@@ -72,7 +72,10 @@ export async function saveWorksheetFile(key: string, data: Buffer) {
 	const store = getWorksheetStore()
 
 	if (store) {
-		await store.set(key, new Blob([data], { type: 'application/pdf' }))
+		await store.set(
+			key,
+			new Blob([new Uint8Array(data)], { type: 'application/pdf' })
+		)
 		return
 	}
 

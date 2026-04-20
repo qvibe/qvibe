@@ -80,6 +80,7 @@ export async function saveWorksheetFile(key: string, data: Buffer) {
 
 export async function readWorksheetFile(key: string) {
 	const store = getWorksheetStore()
+	console.log('store:', store ? 'netlify' : 'local', '| key:', key)
 
 	if (store) {
 		const data = await store.get(key)

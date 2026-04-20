@@ -58,15 +58,15 @@ export async function DELETE(
 
 export async function GET(
 	req: NextRequest,
-	{ params }: { params: { key: string } }
+	{ params }: { params: { id: string } }
 ) {
 	try {
-		const { key } = params
-		if (!key) {
-			return new NextResponse('Key tidak ditemukan', { status: 400 })
+		const { id } = params
+		if (!id) {
+			return new NextResponse('ID tidak ditemukan', { status: 400 })
 		}
 
-		const fileBuffer = await readWorksheetFile(key)
+		const fileBuffer = await readWorksheetFile(id)
 		if (!fileBuffer) {
 			return new NextResponse('File tidak ditemukan', { status: 404 })
 		}
@@ -74,7 +74,7 @@ export async function GET(
 		return new NextResponse(fileBuffer, {
 			headers: {
 				'Content-Type': 'application/pdf',
-				'Content-Disposition': `inline; filename="${key.split('/').pop()}"`
+				'Content-Disposition': `inline; filename="${id.split('/').pop()}"`
 			}
 		})
 	} catch (error) {

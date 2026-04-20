@@ -5,8 +5,8 @@ export default async function HomePage() {
 	const session = await getSession()
 
 	if (session) {
-		redirect('/pages/dashboard')
+		redirect('/dashboard')
 	} else {
-		redirect('/pages/login')
+		redirect('/login')
 	}
 }

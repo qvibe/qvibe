@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getWorksheetsCollection } from '@/app/lib/db'
 import { getSession } from '@/app/lib/auth'
-import { getStore } from '@netlify/blobs'
+import {
+	createWorksheetFileKey,
+	getWorksheetFileUrl,
+	saveWorksheetFile
+} from '@/app/lib/worksheetStorage'
 
 export const runtime = 'nodejs'
 
@@ -29,37 +33,51 @@ export async function POST(req: NextRequest) {
 
 		const formData = await req.formData()
 		const file = formData.get('file') as File
-		const title = formData.get('title') as string
-		const category = formData.get('category') as string
+		const title = String(formData.get('title') ?? '').trim()
+		const category = String(formData.get('category') ?? '').trim()
+
+		if (!title || !category) {
+			return NextResponse.json(
+				{ error: 'Judul dan kategori wajib diisi' },
+				{ status: 400 }
+			)
+		}
 
 		if (!file || file.type !== 'application/pdf') {
 			return NextResponse.json({ error: 'File harus PDF' }, { status: 400 })
 		}
 
-		const store = getStore('worksheet-store')
-		const fileKey = `worksheets/${Date.now()}-${file.name}`
+		const fileKey = createWorksheetFileKey(file.name)
 		const arrayBuffer = await file.arrayBuffer()
 		const buffer = Buffer.from(arrayBuffer)
-		await store.set(fileKey, buffer.buffer)
+		await saveWorksheetFile(fileKey, buffer)
 
-		const fileUrl = `/api/blobs/${fileKey}`
+		const fileUrl = getWorksheetFileUrl(fileKey)
+		const createdAt = new Date()
 
 		const worksheetsCol = await getWorksheetsCollection()
 		const result = await worksheetsCol.insertOne({
 			title,
 			category,
 			fileUrl,
-			createdAt: new Date()
+			createdAt
 		})
 
 		return NextResponse.json({
 			_id: result.insertedId.toString(),
 			title,
 			category,
-			fileUrl
+			fileUrl,
+			createdAt
 		})
 	} catch (error) {
 		console.error('POST worksheet error:', error)
-		return NextResponse.json({ error: 'Upload failed' }, { status: 500 })
+		return NextResponse.json(
+			{
+				error:
+					error instanceof Error ? error.message : 'Worksheet gagal diunggah'
+			},
+			{ status: 500 }
+		)
 	}
 }

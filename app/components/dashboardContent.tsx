@@ -1,22 +1,15 @@
 'use client'
-import { useState, useEffect, useCallback } from 'react'
+
+import { useEffect, useState } from 'react'
+import { BookOpen, FileText } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { SessionUserType, VideoType, WorksheetType } from '../types'
+import { VIDEO_CATEGORIES, getYouTubeEmbedUrl } from '@/app/lib/content'
+import { SessionUserType, VideoType, WorksheetType } from '@/app/types'
+import DashboardFeaturedVideo from './dashboardFeaturedVideo'
+import DashboardHeader from './dashboardHeader'
+import DashboardSection from './dashboardSection'
 import VideoList from './videoList'
 import WorksheetList from './worksheetList'
-
-const videoCategories = [
-	'Materi Alquran',
-	'Ilmu Tajwid',
-	'Surat Pendek',
-	'Doa-doa Harian',
-	'Surat Alquran Pilihan',
-	'Hadist Harian',
-	'Materi Fiqih',
-	'Aidah Akhlak',
-	'Materi Tarikh'
-]
 
 export default function DashboardContent({
 	session
@@ -24,88 +17,227 @@ export default function DashboardContent({
 	session: SessionUserType
 }) {
 	const router = useRouter()
-	const [activeVideoCat, setActiveVideoCat] = useState(videoCategories[0])
+	const [activeVideoCat, setActiveVideoCat] = useState(VIDEO_CATEGORIES[0])
 	const [videos, setVideos] = useState<VideoType[]>([])
 	const [worksheets, setWorksheets] = useState<WorksheetType[]>([])
-
-	const fetchVideos = useCallback(async () => {
-		const res = await fetch(`/api/videos?category=${activeVideoCat}`)
-		const data = await res.json()
-		setVideos(data)
-	}, [activeVideoCat])
-
-	const fetchWorksheets = useCallback(async () => {
-		const res = await fetch('/api/worksheets')
-		const data = await res.json()
-		setWorksheets(data)
-	}, [])
+	const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null)
+	const [loadingVideos, setLoadingVideos] = useState(true)
+	const [loadingWorksheets, setLoadingWorksheets] = useState(true)
+	const [videoError, setVideoError] = useState('')
+	const [worksheetError, setWorksheetError] = useState('')
+	const [loggingOut, setLoggingOut] = useState(false)
 
 	useEffect(() => {
-		const loadData = async () => {
-			await fetchVideos()
-			await fetchWorksheets()
-		}
-		loadData()
-	}, [fetchVideos, fetchWorksheets])
+		let cancelled = false
 
-	const handleLogout = async () => {
+		async function loadVideos() {
+			setLoadingVideos(true)
+			setVideoError('')
+
+			try {
+				const res = await fetch(
+					`/api/videos?category=${encodeURIComponent(activeVideoCat)}`
+				)
+
+				if (!res.ok) {
+					throw new Error('Video gagal dimuat')
+				}
+
+				const data = await res.json()
+
+				if (!cancelled) {
+					setVideos(data)
+				}
+			} catch {
+				if (!cancelled) {
+					setVideos([])
+					setVideoError('Video belum bisa dimuat. Coba lagi sebentar.')
+				}
+			} finally {
+				if (!cancelled) {
+					setLoadingVideos(false)
+				}
+			}
+		}
+
+		void loadVideos()
+
+		return () => {
+			cancelled = true
+		}
+	}, [activeVideoCat])
+
+	useEffect(() => {
+		let cancelled = false
+
+		async function loadWorksheets() {
+			setLoadingWorksheets(true)
+			setWorksheetError('')
+
+			try {
+				const res = await fetch('/api/worksheets')
+
+				if (!res.ok) {
+					throw new Error('Worksheet gagal dimuat')
+				}
+
+				const data = await res.json()
+
+				if (!cancelled) {
+					setWorksheets(data)
+				}
+			} catch {
+				if (!cancelled) {
+					setWorksheets([])
+					setWorksheetError('Worksheet belum bisa dimuat. Coba lagi sebentar.')
+				}
+			} finally {
+				if (!cancelled) {
+					setLoadingWorksheets(false)
+				}
+			}
+		}
+
+		void loadWorksheets()
+
+		return () => {
+			cancelled = true
+		}
+	}, [])
+
+	async function handleLogout() {
+		setLoggingOut(true)
 		await fetch('/api/auth/logout', { method: 'POST' })
-		router.push('/login')
+		router.replace('/login')
 	}
 
+	const selectedVideo =
+		videos.find((video) => video._id === selectedVideoId) ?? videos[0] ?? null
+	const selectedEmbedUrl = selectedVideo
+		? getYouTubeEmbedUrl(selectedVideo.youtubeLink)
+		: null
+	const activeSelectedVideoId = selectedVideo?._id ?? null
+
+	const statCards = [
+		{
+			label: 'Video kategori ini',
+			value: videos.length,
+			tone: 'bg-emerald-50 text-emerald-950'
+		},
+		{
+			label: 'Worksheet tersedia',
+			value: worksheets.length,
+			tone: 'bg-white text-emerald-950'
+		},
+		{
+			label: 'Status akun',
+			value: session.role === 'admin' ? 'Admin' : 'User',
+			tone: 'bg-amber-50 text-emerald-950'
+		}
+	]
+
 	return (
-		<div className="min-h-screen bg-gray-50">
-			<div className="p-6 bg-white shadow flex justify-between items-center">
-				<div>
-					<h1 className="text-4xl font-bold text-green-800">Q-VIBE</h1>
-					<p className="text-sm text-gray-500">
-						(Quranic, Video Interaktif, Belajar, Efektif)
-					</p>
-				</div>
-				<div className="flex gap-4 items-center">
-					{session.role === 'admin' && (
-						<Link
-							href="/pages/admin/materi"
-							className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-						>
-							Kelola Materi
-						</Link>
+		<div className="min-h-screen bg-linear-to-br from-emerald-50 via-white to-amber-50 px-4 py-6 sm:px-6 lg:px-8">
+			<div className="mx-auto flex max-w-7xl flex-col gap-6">
+				<DashboardHeader
+					role={session.role}
+					loggingOut={loggingOut}
+					onLogout={handleLogout}
+				/>
+
+				<section className="grid gap-6 xl:grid-cols-3">
+					<div className="flex flex-col gap-6 rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm xl:col-span-2">
+						<div className="flex flex-col gap-2">
+							<span className="text-sm font-medium text-emerald-700">
+								Kategori materi
+							</span>
+							<h2 className="text-2xl font-semibold text-emerald-950">
+								Pilih topik belajar
+							</h2>
+							<p className="text-sm leading-7 text-slate-600">
+								Pilih kategori untuk melihat materi utama dan video terkait di
+								satu alur yang lebih rapi.
+							</p>
+						</div>
+
+						<div className="flex flex-wrap gap-2">
+							{VIDEO_CATEGORIES.map((category) => {
+								const isActive = activeVideoCat === category
+
+								return (
+									<button
+										key={category}
+										type="button"
+										onClick={() => {
+											setActiveVideoCat(category)
+											setSelectedVideoId(null)
+										}}
+										className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+											isActive
+												? 'bg-emerald-950 text-white'
+												: 'bg-emerald-50 text-emerald-900 hover:bg-emerald-100'
+										}`}
+									>
+										{category}
+									</button>
+								)
+							})}
+						</div>
+
+						<div className="grid gap-4 sm:grid-cols-3">
+							{statCards.map((card) => (
+								<div
+									key={card.label}
+									className={`flex flex-col gap-3 rounded-2xl border border-emerald-100 p-4 ${card.tone}`}
+								>
+									<p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+										{card.label}
+									</p>
+									<p className="text-3xl font-semibold">{card.value}</p>
+								</div>
+							))}
+						</div>
+					</div>
+
+					<DashboardFeaturedVideo
+						isLoading={loadingVideos}
+						error={videoError}
+						selectedVideo={selectedVideo}
+						selectedEmbedUrl={selectedEmbedUrl}
+					/>
+				</section>
+
+				<DashboardSection
+					eyebrow="Daftar materi video"
+					title="Pilih video lain"
+					description="Gunakan daftar ini untuk berpindah video tanpa meninggalkan dashboard."
+					icon={<BookOpen className="h-5 w-5" />}
+				>
+					<VideoList
+						videos={videos}
+						activeVideoId={activeSelectedVideoId}
+						onSelect={setSelectedVideoId}
+						isLoading={loadingVideos}
+					/>
+				</DashboardSection>
+
+				<DashboardSection
+					eyebrow="Worksheet edukatif"
+					title="Latihan setelah menonton"
+					description="Buka worksheet sesuai kebutuhan tanpa mencampur tampilan video dan materi cetak."
+					icon={<FileText className="h-5 w-5" />}
+				>
+					{worksheetError ? (
+						<div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-6 text-sm leading-7 text-red-900">
+							{worksheetError}
+						</div>
+					) : (
+						<WorksheetList
+							worksheets={worksheets}
+							isLoading={loadingWorksheets}
+						/>
 					)}
-					<button
-						onClick={handleLogout}
-						className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
-					>
-						Logout
-					</button>
-				</div>
-			</div>
-
-			<div className="max-w-6xl mx-auto p-6">
-				<h2 className="text-2xl font-bold text-center text-green-700">
-					EDUKASI ISLAM TERPERCAYA
-				</h2>
-				<p className="text-center text-gray-600 mb-8">
-					Pilih kategori untuk mulai belajar dari video pilihan
-				</p>
-
-				<div className="flex flex-wrap gap-2 mb-6">
-					{videoCategories.map((cat) => (
-						<button
-							key={cat}
-							onClick={() => setActiveVideoCat(cat)}
-							className={`px-4 py-2 rounded-full ${activeVideoCat === cat ? 'bg-green-700 text-white' : 'bg-gray-200'}`}
-						>
-							{cat}
-						</button>
-					))}
-				</div>
-
-				<VideoList videos={videos} />
-
-				<div className="mt-10">
-					<h3 className="text-xl font-bold mb-4">📄 Worksheet Edukatif</h3>
-					<WorksheetList worksheets={worksheets} />
-				</div>
+				</DashboardSection>
 			</div>
 		</div>
 	)

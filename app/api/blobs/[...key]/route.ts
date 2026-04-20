@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getStore } from '@netlify/blobs'
+import { readWorksheetFile } from '@/app/lib/worksheetStorage'
 
 export const runtime = 'nodejs'
 
@@ -10,14 +10,11 @@ export async function GET(
 	try {
 		const { key } = await params
 		const fileKey = key.join('/')
-		const store = getStore('worksheet-store')
+		const buffer = await readWorksheetFile(fileKey)
 
-		const arrayBuffer = await store.get(fileKey)
-		if (!arrayBuffer) {
+		if (!buffer) {
 			return new NextResponse('File not found', { status: 404 })
 		}
-
-		const buffer = Buffer.from(arrayBuffer)
 
 		return new NextResponse(buffer, {
 			status: 200,

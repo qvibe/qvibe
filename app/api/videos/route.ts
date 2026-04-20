@@ -18,18 +18,29 @@ export async function POST(req: NextRequest) {
 	const session = await getSession()
 	if (session?.role !== 'admin')
 		return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-	const { title, youtubeLink, category } = await req.json()
+
+	const body = await req.json()
+	const title = String(body.title ?? '').trim()
+	const youtubeLink = String(body.youtubeLink ?? '').trim()
+	const category = String(body.category ?? '').trim()
+
+	if (!title || !youtubeLink || !category) {
+		return NextResponse.json({ error: 'Data video tidak lengkap' }, { status: 400 })
+	}
+
 	const videosCol = await getVideosCollection()
+	const createdAt = new Date()
 	const result = await videosCol.insertOne({
 		title,
 		youtubeLink,
 		category,
-		createdAt: new Date()
+		createdAt
 	})
 	return NextResponse.json({
 		_id: result.insertedId.toString(),
 		title,
 		youtubeLink,
-		category
+		category,
+		createdAt
 	})
 }

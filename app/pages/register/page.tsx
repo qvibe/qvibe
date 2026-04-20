@@ -1,6 +1,9 @@
 'use client'
+
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { CheckCircle2, LoaderCircle, ShieldCheck, Sparkles } from 'lucide-react'
 import PasswordInput from '@/app/components/passwordInput'
 
 export default function RegisterPage() {
@@ -16,12 +19,12 @@ export default function RegisterPage() {
 		setError('')
 
 		if (password !== confirmPassword) {
-			setError('Password dan konfirmasi password tidak cocok')
+			setError('Password dan konfirmasi password tidak cocok.')
 			return
 		}
 
 		if (password.length < 6) {
-			setError('Password minimal 6 karakter')
+			setError('Password minimal 6 karakter.')
 			return
 		}
 
@@ -34,85 +37,159 @@ export default function RegisterPage() {
 				body: JSON.stringify({ username, password })
 			})
 
-			const data = await res.json()
+			const data = await res.json().catch(() => null)
 
-			if (res.ok) {
-				alert('Registrasi berhasil! Silakan login.')
-				router.push('/pages/login')
-			} else {
-				setError(data.error || 'Registrasi gagal')
+			if (!res.ok) {
+				throw new Error(data?.error || 'Registrasi gagal')
 			}
-		} catch (err) {
-			setError('Terjadi kesalahan. Silakan coba lagi.')
+
+			router.replace('/login')
+		} catch (error) {
+			setError(
+				error instanceof Error
+					? error.message
+					: 'Terjadi kesalahan. Silakan coba lagi.'
+			)
 		} finally {
 			setLoading(false)
 		}
 	}
 
 	return (
-		<div className="min-h-screen flex items-center justify-center bg-green-50">
-			<form
-				onSubmit={handleSubmit}
-				className="bg-white p-8 rounded shadow-md w-96"
-			>
-				<h1 className="text-2xl font-bold text-green-800 mb-6 text-center">
-					Daftar Q-VIBE
-				</h1>
+		<div className="relative min-h-screen overflow-hidden px-4 py-8 sm:px-6 lg:px-8">
+			<div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_top_right,rgba(21,128,61,0.18),transparent_34%),radial-gradient(circle_at_bottom_left,rgba(245,158,11,0.16),transparent_28%)]" />
 
-				{error && (
-					<div className="mb-4 p-2 bg-red-100 text-red-700 rounded text-sm">
-						{error}
+			<div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-7xl gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(380px,1fr)] lg:items-stretch">
+				<section className="relative hidden overflow-hidden rounded-[36px] border border-white/70 bg-[linear-gradient(135deg,#052e16,#065f46_45%,#14532d)] px-8 py-10 text-white shadow-[0_30px_100px_rgba(6,78,59,0.28)] lg:flex lg:flex-col lg:justify-between">
+					<div className="absolute right-12 top-12 h-44 w-44 rounded-full bg-emerald-300/18 blur-3xl" />
+					<div className="absolute bottom-8 left-8 h-40 w-40 rounded-full bg-amber-300/18 blur-3xl" />
+
+					<div className="relative">
+						<div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-emerald-50">
+							<Sparkles className="h-4 w-4" />
+							Akses baru
+						</div>
+						<h1 className="mt-6 max-w-xl font-serif text-5xl leading-tight">
+							Buat akun dan mulai belajar dengan pengalaman yang lebih rapi.
+						</h1>
+						<p className="mt-5 max-w-xl text-sm leading-8 text-emerald-50/82">
+							Setelah akun dibuat, Anda bisa masuk, memilih kategori materi,
+							menonton video utama, lalu membuka worksheet tanpa langkah yang
+							membingungkan.
+						</p>
 					</div>
-				)}
 
-				<div className="mb-4">
-					<label className="block text-gray-700 mb-2">Username</label>
-					<input
-						type="text"
-						placeholder="Masukkan username"
-						value={username}
-						onChange={(e) => setUsername(e.target.value)}
-						className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500 text-black"
-						required
-						minLength={3}
-					/>
-				</div>
+					<div className="relative space-y-4">
+						{[
+							'Daftar hanya dalam beberapa langkah',
+							'Dashboard lebih jelas untuk video dan worksheet',
+							'Admin dapat mengelola materi dari satu halaman'
+						].map((item) => (
+							<div
+								key={item}
+								className="flex items-start gap-3 rounded-3xl border border-white/10 bg-white/8 px-4 py-4 backdrop-blur"
+							>
+								<CheckCircle2 className="mt-0.5 h-5 w-5 text-amber-200" />
+								<p className="text-sm text-emerald-50/92">{item}</p>
+							</div>
+						))}
+					</div>
+				</section>
 
-				<div className="mb-4">
-					<label className="block text-gray-700 mb-2">Password</label>
-					<PasswordInput
-						value={password}
-						onChange={(e) => setPassword(e.target.value)}
-						placeholder="Masukkan password"
-					/>
-				</div>
+				<section className="flex items-center justify-center">
+					<form
+						onSubmit={handleSubmit}
+						className="w-full max-w-xl rounded-[36px] border border-white/70 bg-white/88 p-6 shadow-[0_30px_90px_rgba(15,23,42,0.12)] backdrop-blur sm:p-8"
+					>
+						<div className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-amber-800">
+							<ShieldCheck className="h-4 w-4" />
+							Registrasi Q-VIBE
+						</div>
+						<h2 className="mt-5 font-serif text-4xl text-emerald-950">
+							Buat akun baru
+						</h2>
+						<p className="mt-3 text-sm leading-7 text-slate-600">
+							Gunakan username yang mudah diingat dan password yang aman agar
+							akses belajar tetap lancar.
+						</p>
 
-				<div className="mb-6">
-					<label className="block text-gray-700 mb-2">
-						Konfirmasi Password
-					</label>
-					<PasswordInput
-						value={confirmPassword}
-						onChange={(e) => setConfirmPassword(e.target.value)}
-						placeholder="Ulangi password"
-					/>
-				</div>
+						{error && (
+							<div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
+								{error}
+							</div>
+						)}
 
-				<button
-					type="submit"
-					disabled={loading}
-					className="w-full bg-green-700 text-white p-2 rounded hover:bg-green-800 transition disabled:opacity-50"
-				>
-					{loading ? 'Memproses...' : 'Daftar'}
-				</button>
+						<div className="mt-6 space-y-4">
+							<div>
+								<label className="mb-2 block text-sm font-medium text-slate-700">
+									Username
+								</label>
+								<input
+									type="text"
+									placeholder="Masukkan username"
+									value={username}
+									onChange={(e) => setUsername(e.target.value)}
+									className="w-full rounded-2xl border border-emerald-950/12 bg-white/90 px-4 py-3 text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-emerald-700 focus:ring-4 focus:ring-emerald-100"
+									required
+									minLength={3}
+									autoComplete="username"
+								/>
+							</div>
 
-				<p className="mt-4 text-center text-sm">
-					Sudah punya akun?{' '}
-					<a href="/pages/login" className="text-green-700 hover:underline">
-						Login di sini
-					</a>
-				</p>
-			</form>
+							<div>
+								<label className="mb-2 block text-sm font-medium text-slate-700">
+									Password
+								</label>
+								<PasswordInput
+									value={password}
+									onChange={(e) => setPassword(e.target.value)}
+									placeholder="Masukkan password"
+									required
+									minLength={6}
+									autoComplete="new-password"
+								/>
+							</div>
+
+							<div>
+								<label className="mb-2 block text-sm font-medium text-slate-700">
+									Konfirmasi password
+								</label>
+								<PasswordInput
+									value={confirmPassword}
+									onChange={(e) => setConfirmPassword(e.target.value)}
+									placeholder="Ulangi password"
+									required
+									minLength={6}
+									autoComplete="new-password"
+								/>
+							</div>
+						</div>
+
+						<button
+							type="submit"
+							disabled={loading}
+							className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-amber-500 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-60"
+						>
+							{loading ? (
+								<LoaderCircle className="h-4 w-4 animate-spin" />
+							) : (
+								<Sparkles className="h-4 w-4" />
+							)}
+							{loading ? 'Membuat akun...' : 'Daftar sekarang'}
+						</button>
+
+						<p className="mt-6 text-center text-sm text-slate-600">
+							Sudah punya akun?{' '}
+							<Link
+								href="/login"
+								className="font-semibold text-emerald-800 transition hover:text-emerald-950"
+							>
+								Masuk di sini
+							</Link>
+						</p>
+					</form>
+				</section>
+			</div>
 		</div>
 	)
 }

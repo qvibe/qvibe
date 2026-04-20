@@ -72,8 +72,8 @@ export async function saveWorksheetFile(key: string, data: Buffer) {
 	const store = getWorksheetStore()
 
 	if (store) {
-		const data = await store.get(key, { type: 'arrayBuffer' })
-		return data ? Buffer.from(data) : null
+		await store.set(key, new Blob([data], { type: 'application/pdf' }))
+		return
 	}
 
 	const filePath = resolveLocalStoragePath(key)
@@ -85,7 +85,7 @@ export async function readWorksheetFile(key: string) {
 	const store = getWorksheetStore()
 
 	if (store) {
-		const data = await store.get(key)
+		const data = await store.get(key, { type: 'arrayBuffer' })
 		return data ? Buffer.from(data) : null
 	}
 
@@ -97,7 +97,6 @@ export async function readWorksheetFile(key: string) {
 		if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
 			return null
 		}
-
 		throw error
 	}
 }

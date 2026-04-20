@@ -2,11 +2,10 @@ import { getSession } from '@/app/lib/auth'
 import { getWorksheetsCollection } from '@/app/lib/db'
 import {
 	deleteWorksheetFile,
-	getWorksheetKeyFromUrl,
-	readWorksheetFile
+	getWorksheetKeyFromUrl
 } from '@/app/lib/worksheetStorage'
 import { ObjectId } from 'mongodb'
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
 
@@ -54,31 +53,4 @@ export async function DELETE(
 	}
 
 	return NextResponse.json({ success: true, id })
-}
-
-export async function GET(
-	req: NextRequest,
-	{ params }: { params: Promise<{ id: string }> }
-) {
-	try {
-		const { id } = await params
-		if (!id) {
-			return new NextResponse('ID tidak ditemukan', { status: 400 })
-		}
-
-		const fileBuffer = await readWorksheetFile(id)
-		if (!fileBuffer) {
-			return new NextResponse('File tidak ditemukan', { status: 404 })
-		}
-
-		return new NextResponse(fileBuffer, {
-			headers: {
-				'Content-Type': 'application/pdf',
-				'Content-Disposition': `inline; filename="${id.split('/').pop()}"`
-			}
-		})
-	} catch (error) {
-		console.error('Error serving worksheet file:', error)
-		return new NextResponse('Internal server error', { status: 500 })
-	}
 }

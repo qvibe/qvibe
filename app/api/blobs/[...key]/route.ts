@@ -16,11 +16,13 @@ export async function GET(
 			return new NextResponse('File not found', { status: 404 })
 		}
 
-		return new NextResponse(buffer, {
+		console.log('Buffer length:', buffer?.length, typeof buffer)
+		return new NextResponse(new Uint8Array(buffer), {
 			status: 200,
 			headers: {
 				'Content-Type': 'application/pdf',
-				'Content-Disposition': 'inline'
+				'Content-Disposition': 'inline',
+				'Content-Length': buffer.length.toString()
 			}
 		})
 	} catch (error) {

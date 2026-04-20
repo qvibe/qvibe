@@ -3,8 +3,7 @@ import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
 const WORKSHEET_STORE_NAME = 'worksheet-store'
-const WORKSHEET_FILE_URL_PREFIX = '/api/worksheets/'
-
+const WORKSHEET_FILE_URL_PREFIX = '/api/blobs/'
 const LOCAL_STORAGE_ROOT = path.resolve(process.cwd(), '.storage')
 
 function isMissingBlobsEnvironmentError(error: unknown) {
@@ -55,7 +54,7 @@ export function createWorksheetFileKey(fileName: string) {
 }
 
 export function getWorksheetFileUrl(key: string) {
-	return `${WORKSHEET_FILE_URL_PREFIX}${encodeURIComponent(key)}`
+	return `${WORKSHEET_FILE_URL_PREFIX}${key}`
 }
 
 export function getWorksheetKeyFromUrl(fileUrl: string) {

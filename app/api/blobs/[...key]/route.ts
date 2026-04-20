@@ -10,23 +10,23 @@ export async function GET(
 	try {
 		const { key } = await params
 		const fileKey = key.join('/')
+		const buffer = await readWorksheetFile(fileKey)
 
-		// Temporary debug
-		const { getStore } = await import('@netlify/blobs')
-		let storeStatus = 'unknown'
-		let blobResult = 'unknown'
-
-		try {
-			const store = getStore('worksheet-store')
-			storeStatus = 'connected'
-			const data = await store.get(fileKey, { type: 'arrayBuffer' })
-			blobResult = data ? `found: ${data.byteLength} bytes` : 'null'
-		} catch (e) {
-			storeStatus = `error: ${e instanceof Error ? e.message : String(e)}`
+		if (!buffer) {
+			return new NextResponse('File not found', { status: 404 })
 		}
 
-		return NextResponse.json({ fileKey, storeStatus, blobResult })
+		console.log('Buffer length:', buffer?.length, typeof buffer)
+		return new NextResponse(new Uint8Array(buffer), {
+			status: 200,
+			headers: {
+				'Content-Type': 'application/pdf',
+				'Content-Disposition': 'inline',
+				'Content-Length': buffer.length.toString()
+			}
+		})
 	} catch (error) {
-		return NextResponse.json({ error: String(error) })
+		console.error('Error retrieving file:', error)
+		return new NextResponse('Internal Server Error', { status: 500 })
 	}
 }

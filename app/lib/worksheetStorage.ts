@@ -46,11 +46,14 @@ function resolveLocalStoragePath(key: string) {
 }
 
 export function createWorksheetFileKey(fileName: string) {
-	const safeFileName = path
-		.basename(fileName || 'worksheet.pdf')
-		.replace(/[^a-zA-Z0-9._-]+/g, '-')
+	const ext = path.extname(fileName)
+	const base = path
+		.basename(fileName, ext)
+		.replace(/[^a-zA-Z0-9_-]+/g, '-')
+		.replace(/-+/g, '-')
+		.replace(/^-|-$/g, '')
 
-	return `worksheets/${Date.now()}-${safeFileName}`
+	return `worksheets/${Date.now()}-${base}${ext}`
 }
 
 export function getWorksheetFileUrl(key: string) {
@@ -80,7 +83,6 @@ export async function saveWorksheetFile(key: string, data: Buffer) {
 
 export async function readWorksheetFile(key: string) {
 	const store = getWorksheetStore()
-	console.log('store:', store ? 'netlify' : 'local', '| key:', key)
 
 	if (store) {
 		const data = await store.get(key)

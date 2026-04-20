@@ -3,7 +3,7 @@ import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
 const WORKSHEET_STORE_NAME = 'worksheet-store'
-const WORKSHEET_FILE_URL_PREFIX = '/api/worksheet-file/'
+const WORKSHEET_FILE_URL_PREFIX = '/api/worksheets/'
 
 const LOCAL_STORAGE_ROOT = path.resolve(process.cwd(), '.storage')
 

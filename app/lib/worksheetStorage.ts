@@ -69,8 +69,8 @@ export async function saveWorksheetFile(key: string, data: Buffer) {
 	const store = getWorksheetStore()
 
 	if (store) {
-		await store.set(key, Uint8Array.from(data).buffer)
-		return
+		const data = await store.get(key, { type: 'arrayBuffer' })
+		return data ? Buffer.from(data) : null
 	}
 
 	const filePath = resolveLocalStoragePath(key)
